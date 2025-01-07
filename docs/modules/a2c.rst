@@ -14,7 +14,7 @@ It uses multiple workers to avoid the use of a replay buffer.
 
   If you find training unstable or want to match performance of stable-baselines A2C, consider using
   ``RMSpropTFLike`` optimizer from ``stable_baselines3.common.sb2_compat.rmsprop_tf_like``.
-  You can change optimizer with ``A2C(policy_kwargs=dict(optimizer_class=RMSpropTFLike, eps=1e-5))``.
+  You can change optimizer with ``A2C(policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)))``.
   Read more `here <https://github.com/DLR-RM/stable-baselines3/pull/110#issuecomment-663255241>`_.
 
 
@@ -53,15 +53,13 @@ Train a A2C agent on ``CartPole-v1`` using 4 environments.
 
 .. code-block:: python
 
-  import gym
-
   from stable_baselines3 import A2C
   from stable_baselines3.common.env_util import make_vec_env
 
   # Parallel environments
-  env = make_vec_env("CartPole-v1", n_envs=4)
+  vec_env = make_vec_env("CartPole-v1", n_envs=4)
 
-  model = A2C("MlpPolicy", env, verbose=1)
+  model = A2C("MlpPolicy", vec_env, verbose=1)
   model.learn(total_timesteps=25000)
   model.save("a2c_cartpole")
 
@@ -69,11 +67,29 @@ Train a A2C agent on ``CartPole-v1`` using 4 environments.
 
   model = A2C.load("a2c_cartpole")
 
-  obs = env.reset()
+  obs = vec_env.reset()
   while True:
       action, _states = model.predict(obs)
-      obs, rewards, dones, info = env.step(action)
-      env.render()
+      obs, rewards, dones, info = vec_env.step(action)
+      vec_env.render("human")
+
+
+.. note::
+
+  A2C is meant to be run primarily on the CPU, especially when you are not using a CNN. To improve CPU utilization, try turning off the GPU and using ``SubprocVecEnv`` instead of the default ``DummyVecEnv``:
+
+  .. code-block:: python
+
+    from stable_baselines3 import A2C
+    from stable_baselines3.common.env_util import make_vec_env
+    from stable_baselines3.common.vec_env import SubprocVecEnv
+
+    if __name__=="__main__":
+        env = make_vec_env("CartPole-v1", n_envs=8, vec_env_cls=SubprocVecEnv)
+        model = A2C("MlpPolicy", env, device="cpu")
+        model.learn(total_timesteps=25_000)
+
+  For more information, see :ref:`Vectorized Environments <vec_env>`, `Issue #1245 <https://github.com/DLR-RM/stable-baselines3/issues/1245>`_ or the `Multiprocessing notebook <https://colab.research.google.com/github/Stable-Baselines-Team/rl-colab-notebooks/blob/sb3/multiprocessing_rl.ipynb>`_.
 
 
 Results
@@ -148,6 +164,8 @@ Parameters
   :members:
   :inherited-members:
 
+
+.. _a2c_policies:
 
 A2C Policies
 -------------

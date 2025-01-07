@@ -13,13 +13,13 @@ An open-source Gym-compatible environment specifically tailored for developing R
 
 | Authors: Parth Kothari, Christian Perone, Luca Bergamini, Alexandre Alahi, Peter Ondruska
 | Github: https://github.com/lyft/l5kit
-| Paper: https://arxiv.org/abs/2111.06889 
+| Paper: https://arxiv.org/abs/2111.06889
 
 
 RL Reach
 --------
 
-A platform for running reproducible reinforcement learning experiments for customisable robotic reaching tasks. This self-contained and straightforward toolbox allows its users to quickly investigate and identify optimal training configurations.
+A platform for running reproducible reinforcement learning experiments for customizable robotic reaching tasks. This self-contained and straightforward toolbox allows its users to quickly investigate and identify optimal training configurations.
 
 | Authors: Pierre Aumjaud, David McAuliffe, Francisco Javier Rodríguez Lera, Philip Cardiff
 | Github: https://github.com/PierreExeter/rl_reach
@@ -35,6 +35,17 @@ It was the starting point of Stable-Baselines3.
 | Author: Antonin Raffin, Freek Stulp
 | Github: https://github.com/DLR-RM/stable-baselines3/tree/sde
 | Paper: https://arxiv.org/abs/2005.05719
+
+
+Furuta Pendulum Robot
+---------------------
+
+Everything you need to build and train a rotary inverted pendulum, also known as a furuta pendulum! This makes use of gSDE listed above.
+The Github repository contains code, CAD files and a bill of materials for you to build the robot. You can watch `a video overview of the project here <https://www.youtube.com/watch?v=Y6FVBbqjR40>`_.
+
+| Authors: Armand du Parc Locmaria, Pierre Fabre
+| Github: https://github.com/Armandpl/furuta
+
 
 Reacher
 -------
@@ -54,7 +65,7 @@ A simple interface to instantiate RL environments with SUMO for Traffic Signal C
 
 - Supports Multiagent RL
 - Compatibility with gym.Env and popular RL libraries such as stable-baselines3 and RLlib
-- Easy customisation: state and reward definitions are easily modifiable
+- Easy customization: state and reward definitions are easily modifiable
 
 | Author: Lucas Alegre
 | Github: https://github.com/LucasAlegre/sumo-rl
@@ -144,9 +155,125 @@ Driving policies can be trained in different scenarios, and several notebooks us
 tactile-gym
 -------------------
 
-Suite of RL environments focussed on using a simulated tactile sensor as the primary source of observations. Sim-to-Real results across 4 out of 5 proposed envs.
+Suite of RL environments focused on using a simulated tactile sensor as the primary source of observations. Sim-to-Real results across 4 out of 5 proposed envs.
 
 | Author: Alex Church
 | GitHub: https://github.com/ac-93/tactile_gym
 | Paper: https://arxiv.org/abs/2106.08796
 | Website: `tactile-gym website <https://sites.google.com/my.bristol.ac.uk/tactile-gym-sim2real/home>`_
+
+RLeXplore
+---------
+
+RLeXplore is a set of implementations of intrinsic reward driven-exploration approaches in reinforcement learning using PyTorch, which can be deployed in arbitrary algorithms in a plug-and-play manner. In particular, RLeXplore is designed to be well compatible with Stable-Baselines3, providing more stable exploration benchmarks.
+
+- Support arbitrary RL algorithms;
+- Highly modular and high expansibility;
+- Keep up with the latest research progress.
+
+| Author: Mingqi Yuan
+| GitHub: https://github.com/yuanmingqi/rl-exploration-baselines
+
+
+UAV_Navigation_DRL_AirSim
+-------------------------
+
+A platform for training UAV navigation policies in complex unknown environments.
+
+- Based on AirSim and SB3.
+- An Open AI Gym env is created including kinematic models for both multirotor and fixed-wing UAVs.
+- Some UE4 environments are provided to train and test the navigation policy.
+
+Try to train your own autonomous flight policy and even transfer it to real UAVs! Have fun ^_^!
+
+| Author: Lei He
+| Github: https://github.com/heleidsn/UAV_Navigation_DRL_AirSim
+
+Pink Noise Exploration
+----------------------
+
+A simple library for pink noise exploration with deterministic (DDPG / TD3) and stochastic (SAC) off-policy algorithms. Pink noise has been shown to work better than uncorrelated Gaussian noise (the default choice) and Ornstein-Uhlenbeck noise on a range of continuous control benchmark tasks. This library is designed to work with Stable Baselines3.
+
+| Authors: Onno Eberhard, Jakob Hollenstein, Cristina Pinneri, Georg Martius
+| Github: https://github.com/martius-lab/pink-noise-rl
+| Paper: https://openreview.net/forum?id=hQ9V5QN27eS (Oral at ICLR 2023)
+
+
+mobile-env
+----------
+
+An open, minimalist Gymnasium environment for autonomous coordination in wireless mobile networks.
+It allows simulating various scenarios with moving users in a cellular network with multiple base stations.
+
+- Written in pure Python, easy to modify and extend, and can be installed directly via PyPI.
+- Implements the standard Gymnasium interface such that it can be used with all common frameworks for reinforcement learning.
+- There are examples for both single-agent and multi-agent RL using either `stable-baselines3` or Ray RLlib.
+
+| Authors: Stefan Schneider, Stefan Werner
+| Github: https://github.com/stefanbschneider/mobile-env
+| Paper: https://ris.uni-paderborn.de/download/30236/30237 (2022 IEEE/IFIP Network Operations and Management Symposium (NOMS))
+
+
+DeepNetSlice
+------------
+
+A Deep Reinforcement Learning Open-Source Toolkit for Network Slice Placement (NSP).
+
+NSP is the problem of deciding which physical servers in a network should host the virtual network functions (VNFs) that make up a network slice, as well as managing the mapping of the virtual links between the VNFs onto the physical infrastructure.
+It is a complex optimization problem, as it involves considering the requirements of the network slice and the available resources on the physical network.
+The goal is generally to maximize the utilization of the physical resources while ensuring that the network slices meet their performance requirements.
+
+The toolkit includes a customizable simulation environments, as well as some ready-to-use demos for training
+intelligent agents to perform network slice placement.
+
+| Author: Alex Pasquali
+| Github: https://github.com/AlexPasqua/DeepNetSlice
+| Paper: **under review** (citation instructions on the project's README.md) -> see this Master's Thesis for the moment: https://etd.adm.unipi.it/theses/available/etd-01182023-110038/unrestricted/Tesi_magistrale_Pasquali_Alex.pdf
+
+
+PokemonRedExperiments
+---------------------
+
+Playing Pokemon Red with Reinforcement Learning.
+
+| Author: Peter Whidden
+| Github: https://github.com/PWhiddy/PokemonRedExperiments
+| Video: https://www.youtube.com/watch?v=DcYLT37ImBY
+
+
+Evolving Reservoirs for Meta Reinforcement Learning
+---------------------------------------------------
+
+Meta-RL framework to optimize reservoir-like neural structures (special kind of RNNs), and integrate them to RL agents to improve their training.
+It enables solving environments involving partial observability or locomotion (e.g MuJoCo), and optimizing reservoirs that can generalize to unseen tasks.
+
+| Authors: Corentin Léger, Gautier Hamon, Eleni Nisioti, Xavier Hinaut, Clément Moulin-Frier
+| Github: https://github.com/corentinlger/ER-MRL
+| Paper: https://arxiv.org/abs/2312.06695
+
+FootstepNet Envs
+----------------
+
+These environments are dedicated to train efficient agents that can plan and forecast bipedal robot footsteps in order to go to a target location possibly avoiding obstacles. They are designed to be used with Reinforcement Learning (RL) algorithms.
+
+Real world experiments were conducted during RoboCup competitions on the Sigmaban robot, a small-sized humanoid designed by the *Rhoban Team*.
+
+| Authors: Clément Gaspard, Grégoire Passault, Mélodie Daniel, Olivier Ly
+| Github: https://github.com/Rhoban/footstepnet_envs
+| Paper: https://arxiv.org/abs/2403.12589
+
+
+FRASA: Fall Recovery And Stand up agent
+---------------------------------------
+
+A Deep Reinforcement Learning agent for a humanoid robot that learns to recover from falls and stand up. 
+
+The agent is trained using the MuJoCo physics engine. Real world experiments are conducted on the 
+Sigmaban humanoid robot, a small-sized humanoid designed by the *Rhoban Team* to compete in the RoboCup Kidsize League.
+The results, detailled in the paper and the video, show that the agent is able to recover from 
+various external disturbances and stand up in a few seconds.
+
+| Authors: Marc Duclusaud, Clément Gaspard, Grégoire Passault, Mélodie Daniel, Olivier Ly
+| Github: https://github.com/Rhoban/frasa
+| Paper: https://arxiv.org/abs/2410.08655
+| Video: https://www.youtube.com/watch?v=NL65XW0O0mk

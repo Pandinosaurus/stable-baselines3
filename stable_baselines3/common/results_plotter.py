@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -25,11 +25,11 @@ def rolling_window(array: np.ndarray, window: int) -> np.ndarray:
     :return: rolling window on the input array
     """
     shape = array.shape[:-1] + (array.shape[-1] - window + 1, window)
-    strides = array.strides + (array.strides[-1],)
+    strides = (*array.strides, array.strides[-1])
     return np.lib.stride_tricks.as_strided(array, shape=shape, strides=strides)
 
 
-def window_func(var_1: np.ndarray, var_2: np.ndarray, window: int, func: Callable) -> Tuple[np.ndarray, np.ndarray]:
+def window_func(var_1: np.ndarray, var_2: np.ndarray, window: int, func: Callable) -> tuple[np.ndarray, np.ndarray]:
     """
     Apply a function to the rolling window of 2 arrays
 
@@ -44,9 +44,9 @@ def window_func(var_1: np.ndarray, var_2: np.ndarray, window: int, func: Callabl
     return var_1[window - 1 :], function_on_var2
 
 
-def ts2xy(data_frame: pd.DataFrame, x_axis: str) -> Tuple[np.ndarray, np.ndarray]:
+def ts2xy(data_frame: pd.DataFrame, x_axis: str) -> tuple[np.ndarray, np.ndarray]:
     """
-    Decompose a data frame variable to x ans ys
+    Decompose a data frame variable to x and ys
 
     :param data_frame: the input data
     :param x_axis: the axis for the x and y output
@@ -69,7 +69,7 @@ def ts2xy(data_frame: pd.DataFrame, x_axis: str) -> Tuple[np.ndarray, np.ndarray
 
 
 def plot_curves(
-    xy_list: List[Tuple[np.ndarray, np.ndarray]], x_axis: str, title: str, figsize: Tuple[int, int] = (8, 2)
+    xy_list: list[tuple[np.ndarray, np.ndarray]], x_axis: str, title: str, figsize: tuple[int, int] = (8, 2)
 ) -> None:
     """
     plot the curves
@@ -84,7 +84,7 @@ def plot_curves(
     plt.figure(title, figsize=figsize)
     max_x = max(xy[0][-1] for xy in xy_list)
     min_x = 0
-    for (_, (x, y)) in enumerate(xy_list):
+    for _, (x, y) in enumerate(xy_list):
         plt.scatter(x, y, s=2)
         # Do not plot the smoothed curve at all if the timeseries is shorter than window size.
         if x.shape[0] >= EPISODES_WINDOW:
@@ -99,7 +99,7 @@ def plot_curves(
 
 
 def plot_results(
-    dirs: List[str], num_timesteps: Optional[int], x_axis: str, task_name: str, figsize: Tuple[int, int] = (8, 2)
+    dirs: list[str], num_timesteps: Optional[int], x_axis: str, task_name: str, figsize: tuple[int, int] = (8, 2)
 ) -> None:
     """
     Plot the results using csv files from ``Monitor`` wrapper.

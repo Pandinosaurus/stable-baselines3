@@ -27,26 +27,27 @@ You can find two examples of custom callbacks in the documentation: one for savi
         """
         A custom callback that derives from ``BaseCallback``.
 
-        :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
+        :param verbose: Verbosity level: 0 for no output, 1 for info messages, 2 for debug messages
         """
-        def __init__(self, verbose=0):
-            super(CustomCallback, self).__init__(verbose)
+        def __init__(self, verbose: int = 0):
+            super().__init__(verbose)
             # Those variables will be accessible in the callback
             # (they are defined in the base class)
             # The RL model
             # self.model = None  # type: BaseAlgorithm
             # An alias for self.model.get_env(), the environment used for training
-            # self.training_env = None  # type: Union[gym.Env, VecEnv, None]
+            # self.training_env # type: VecEnv
             # Number of time the callback was called
             # self.n_calls = 0  # type: int
+            # num_timesteps = n_envs * n times env.step() was called
             # self.num_timesteps = 0  # type: int
             # local and global variables
-            # self.locals = None  # type: Dict[str, Any]
-            # self.globals = None  # type: Dict[str, Any]
+            # self.locals = {}  # type: Dict[str, Any]
+            # self.globals = {}  # type: Dict[str, Any]
             # The logger object, used to report things in the terminal
-            # self.logger = None  # stable_baselines3.common.logger
-            # # Sometimes, for event callback, it is useful
-            # # to have access to the parent object
+            # self.logger # type: stable_baselines3.common.logger.Logger
+            # Sometimes, for event callback, it is useful
+            # to have access to the parent object
             # self.parent = None  # type: Optional[BaseCallback]
 
         def _on_training_start(self) -> None:
@@ -70,7 +71,7 @@ You can find two examples of custom callbacks in the documentation: one for savi
             For child callback (of an `EventCallback`), this will be called
             when the event is triggered.
 
-            :return: (bool) If the callback returns False, training is aborted early.
+            :return: If the callback returns False, training is aborted early.
             """
             return True
 
@@ -110,7 +111,7 @@ A child callback is for instance :ref:`StopTrainingOnRewardThreshold <StopTraini
 
 .. note::
 
-	We recommend to take a look at the source code of :ref:`EvalCallback` and :ref:`StopTrainingOnRewardThreshold <StopTrainingCallback>` to have a better overview of what can be achieved with this kind of callbacks.
+	We recommend taking a look at the source code of :ref:`EvalCallback` and :ref:`StopTrainingOnRewardThreshold <StopTrainingCallback>` to have a better overview of what can be achieved with this kind of callbacks.
 
 
 .. code-block:: python
@@ -119,23 +120,18 @@ A child callback is for instance :ref:`StopTrainingOnRewardThreshold <StopTraini
         """
         Base class for triggering callback on event.
 
-        :param callback: (Optional[BaseCallback]) Callback that will be called
-            when an event is triggered.
-        :param verbose: (int)
+        :param callback: Callback that will be called when an event is triggered.
+        :param verbose: Verbosity level: 0 for no output, 1 for info messages, 2 for debug messages
         """
-        def __init__(self, callback: Optional[BaseCallback] = None, verbose: int = 0):
-            super(EventCallback, self).__init__(verbose=verbose)
+        def __init__(self, callback: BaseCallback, verbose: int = 0):
+            super().__init__(verbose=verbose)
             self.callback = callback
             # Give access to the parent
-            if callback is not None:
-                self.callback.parent = self
+            self.callback.parent = self
         ...
 
         def _on_event(self) -> bool:
-            if self.callback is not None:
-                return self.callback()
-            return True
-
+            return self.callback()
 
 
 Callback Collection
@@ -157,25 +153,35 @@ CheckpointCallback
 
 Callback for saving a model every ``save_freq`` calls to ``env.step()``, you must specify a log folder (``save_path``)
 and optionally a prefix for the checkpoints (``rl_model`` by default).
+If you are using this callback to stop and resume training, you may want to optionally save the replay buffer if the
+model has one (``save_replay_buffer``, ``False`` by default).
+Additionally, if your environment uses a :ref:`VecNormalize <vec_env>` wrapper, you can save the
+corresponding statistics using ``save_vecnormalize`` (``False`` by default).
 
 .. warning::
 
-  When using multiple environments, each call to  ``env.step()`` will effectively correspond to ``n_envs`` steps.
-  If you want the ``save_freq`` to be similar when using different number of environments,
+  When using multiple environments, each call to ``env.step()`` will effectively correspond to ``n_envs`` steps.
+  If you want the ``save_freq`` to be similar when using a different number of environments,
   you need to account for it using ``save_freq = max(save_freq // n_envs, 1)``.
   The same goes for the other callbacks.
 
 
 .. code-block:: python
 
-    from stable_baselines3 import SAC
-    from stable_baselines3.common.callbacks import CheckpointCallback
-    # Save a checkpoint every 1000 steps
-    checkpoint_callback = CheckpointCallback(save_freq=1000, save_path='./logs/',
-                                             name_prefix='rl_model')
+  from stable_baselines3 import SAC
+  from stable_baselines3.common.callbacks import CheckpointCallback
 
-    model = SAC('MlpPolicy', 'Pendulum-v0')
-    model.learn(2000, callback=checkpoint_callback)
+  # Save a checkpoint every 1000 steps
+  checkpoint_callback = CheckpointCallback(
+    save_freq=1000,
+    save_path="./logs/",
+    name_prefix="rl_model",
+    save_replay_buffer=True,
+    save_vecnormalize=True,
+  )
+
+  model = SAC("MlpPolicy", "Pendulum-v1")
+  model.learn(2000, callback=checkpoint_callback)
 
 
 .. _EvalCallback:
@@ -184,12 +190,12 @@ EvalCallback
 ^^^^^^^^^^^^
 
 Evaluate periodically the performance of an agent, using a separate test environment.
-It will save the best model if ``best_model_save_path`` folder is specified and save the evaluations results in a numpy archive (``evaluations.npz``) if ``log_path`` folder is specified.
+It will save the best model if ``best_model_save_path`` folder is specified and save the evaluations results in a NumPy archive (``evaluations.npz``) if ``log_path`` folder is specified.
 
 
 .. note::
 
-	You can pass a child callback via the ``callback_on_new_best`` argument. It will be triggered each time there is a new best model.
+	You can pass child callbacks via ``callback_after_eval`` and ``callback_on_new_best`` arguments. ``callback_after_eval`` will be triggered after every evaluation, and ``callback_on_new_best`` will be triggered each time there is a new best model.
 
 
 .. warning::
@@ -200,20 +206,43 @@ It will save the best model if ``best_model_save_path`` folder is specified and 
 
 .. code-block:: python
 
-    import gym
+    import gymnasium as gym
 
     from stable_baselines3 import SAC
     from stable_baselines3.common.callbacks import EvalCallback
 
     # Separate evaluation env
-    eval_env = gym.make('Pendulum-v0')
+    eval_env = gym.make("Pendulum-v1")
     # Use deterministic actions for evaluation
-    eval_callback = EvalCallback(eval_env, best_model_save_path='./logs/',
-                                 log_path='./logs/', eval_freq=500,
+    eval_callback = EvalCallback(eval_env, best_model_save_path="./logs/",
+                                 log_path="./logs/", eval_freq=500,
                                  deterministic=True, render=False)
 
-    model = SAC('MlpPolicy', 'Pendulum-v0')
+    model = SAC("MlpPolicy", "Pendulum-v1")
     model.learn(5000, callback=eval_callback)
+
+.. _ProgressBarCallback:
+
+ProgressBarCallback
+^^^^^^^^^^^^^^^^^^^
+
+Display a progress bar with the current progress, elapsed time and estimated remaining time.
+This callback is integrated inside SB3 via the ``progress_bar`` argument of the ``learn()`` method.
+
+.. note::
+
+	``ProgressBarCallback`` callback requires ``tqdm`` and ``rich`` packages to be installed. This is done automatically when using ``pip install stable-baselines3[extra]``
+
+
+.. code-block:: python
+
+    from stable_baselines3 import PPO
+    from stable_baselines3.common.callbacks import ProgressBarCallback
+
+    model = PPO("MlpPolicy", "Pendulum-v1")
+    # Display progress bar using the progress bar callback
+    # this is equivalent to model.learn(100_000, callback=ProgressBarCallback())
+    model.learn(100_000, progress_bar=True)
 
 
 .. _Callbacklist:
@@ -227,20 +256,20 @@ Alternatively, you can pass directly a list of callbacks to the ``learn()`` meth
 
 .. code-block:: python
 
-    import gym
+    import gymnasium as gym
 
     from stable_baselines3 import SAC
     from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
 
-    checkpoint_callback = CheckpointCallback(save_freq=1000, save_path='./logs/')
+    checkpoint_callback = CheckpointCallback(save_freq=1000, save_path="./logs/")
     # Separate evaluation env
-    eval_env = gym.make('Pendulum-v0')
-    eval_callback = EvalCallback(eval_env, best_model_save_path='./logs/best_model',
-                                 log_path='./logs/results', eval_freq=500)
+    eval_env = gym.make("Pendulum-v1")
+    eval_callback = EvalCallback(eval_env, best_model_save_path="./logs/best_model",
+                                 log_path="./logs/results", eval_freq=500)
     # Create the callback list
     callback = CallbackList([checkpoint_callback, eval_callback])
 
-    model = SAC('MlpPolicy', 'Pendulum-v0')
+    model = SAC("MlpPolicy", "Pendulum-v1")
     # Equivalent to:
     # model.learn(5000, callback=[checkpoint_callback, eval_callback])
     model.learn(5000, callback=callback)
@@ -257,18 +286,18 @@ It must be used with the :ref:`EvalCallback` and use the event triggered by a ne
 
 .. code-block:: python
 
-    import gym
+    import gymnasium as gym
 
     from stable_baselines3 import SAC
     from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold
 
     # Separate evaluation env
-    eval_env = gym.make('Pendulum-v0')
+    eval_env = gym.make("Pendulum-v1")
     # Stop training when the model reaches the reward threshold
     callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-200, verbose=1)
     eval_callback = EvalCallback(eval_env, callback_on_new_best=callback_on_best, verbose=1)
 
-    model = SAC('MlpPolicy', 'Pendulum-v0', verbose=1)
+    model = SAC("MlpPolicy", "Pendulum-v1", verbose=1)
     # Almost infinite number of timesteps, but the training will stop
     # early as soon as the reward threshold is reached
     model.learn(int(1e10), callback=eval_callback)
@@ -289,17 +318,17 @@ An :ref:`EventCallback` that will trigger its child callback every ``n_steps`` t
 
 .. code-block:: python
 
-  import gym
+  import gymnasium as gym
 
   from stable_baselines3 import PPO
   from stable_baselines3.common.callbacks import CheckpointCallback, EveryNTimesteps
 
   # this is equivalent to defining CheckpointCallback(save_freq=500)
   # checkpoint_callback will be triggered every 500 steps
-  checkpoint_on_event = CheckpointCallback(save_freq=1, save_path='./logs/')
+  checkpoint_on_event = CheckpointCallback(save_freq=1, save_path="./logs/")
   event_callback = EveryNTimesteps(n_steps=500, callback=checkpoint_on_event)
 
-  model = PPO('MlpPolicy', 'Pendulum-v0', verbose=1)
+  model = PPO("MlpPolicy", "Pendulum-v1", verbose=1)
 
   model.learn(int(2e4), callback=event_callback)
 
@@ -328,10 +357,40 @@ and in total for ``max_episodes * n_envs`` episodes.
     # Stops training when the model reaches the maximum number of episodes
     callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=5, verbose=1)
 
-    model = A2C('MlpPolicy', 'Pendulum-v0', verbose=1)
+    model = A2C("MlpPolicy", "Pendulum-v1", verbose=1)
     # Almost infinite number of timesteps, but the training will stop
     # early as soon as the max number of episodes is reached
     model.learn(int(1e10), callback=callback_max_episodes)
+
+.. _StopTrainingOnNoModelImprovement:
+
+StopTrainingOnNoModelImprovement
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Stop the training if there is no new best model (no new best mean reward) after more than a specific number of consecutive evaluations.
+The idea is to save time in experiments when you know that the learning curves are somehow well-behaved and, therefore,
+after many evaluations without improvement the learning has probably stabilized.
+It must be used with the :ref:`EvalCallback` and use the event triggered after every evaluation.
+
+
+.. code-block:: python
+
+    import gymnasium as gym
+
+    from stable_baselines3 import SAC
+    from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnNoModelImprovement
+
+    # Separate evaluation env
+    eval_env = gym.make("Pendulum-v1")
+    # Stop training if there is no improvement after more than 3 evaluations
+    stop_train_callback = StopTrainingOnNoModelImprovement(max_no_improvement_evals=3, min_evals=5, verbose=1)
+    eval_callback = EvalCallback(eval_env, eval_freq=1000, callback_after_eval=stop_train_callback, verbose=1)
+
+    model = SAC("MlpPolicy", "Pendulum-v1", learning_rate=1e-3, verbose=1)
+    # Almost infinite number of timesteps, but the training will stop early
+    # as soon as the the number of consecutive evaluations without model
+    # improvement is greater than 3
+    model.learn(int(1e10), callback=eval_callback)
 
 
 .. automodule:: stable_baselines3.common.callbacks

@@ -35,6 +35,9 @@ Notes
     which is the equivalent to the inverse of reward scale in the original SAC paper.
     The main reason is that it avoids having too high errors when updating the Q functions.
 
+.. note::
+    When automatically adjusting the temperature (alpha/entropy coefficient), we optimize the logarithm of the entropy coefficient instead of the entropy coefficient itself. This is consistent with the original implementation and has proven to be more stable
+    (see issues `GH#36 <https://github.com/DLR-RM/stable-baselines3/issues/36>`_, `#55 <https://github.com/araffin/sbx/issues/55>`_ and others).
 
 .. note::
 
@@ -68,12 +71,11 @@ This example is only to demonstrate the use of the library and its functions, an
 
 .. code-block:: python
 
-  import gym
-  import numpy as np
+  import gymnasium as gym
 
   from stable_baselines3 import SAC
 
-  env = gym.make("Pendulum-v0")
+  env = gym.make("Pendulum-v1", render_mode="human")
 
   model = SAC("MlpPolicy", env, verbose=1)
   model.learn(total_timesteps=10000, log_interval=4)
@@ -83,13 +85,12 @@ This example is only to demonstrate the use of the library and its functions, an
 
   model = SAC.load("sac_pendulum")
 
-  obs = env.reset()
+  obs, info = env.reset()
   while True:
       action, _states = model.predict(obs, deterministic=True)
-      obs, reward, done, info = env.step(action)
-      env.render()
-      if done:
-        obs = env.reset()
+      obs, reward, terminated, truncated, info = env.step(action)
+      if terminated or truncated:
+          obs, info = env.reset()
 
 
 Results

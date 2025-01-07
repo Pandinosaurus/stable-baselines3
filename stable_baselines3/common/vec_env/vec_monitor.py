@@ -1,6 +1,6 @@
 import time
 import warnings
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 
@@ -27,7 +27,7 @@ class VecMonitor(VecEnvWrapper):
         self,
         venv: VecEnv,
         filename: Optional[str] = None,
-        info_keywords: Tuple[str, ...] = (),
+        info_keywords: tuple[str, ...] = (),
     ):
         # Avoid circular import
         from stable_baselines3.common.monitor import Monitor, ResultsWriter
@@ -49,8 +49,6 @@ class VecMonitor(VecEnvWrapper):
             )
 
         VecEnvWrapper.__init__(self, venv)
-        self.episode_returns = None
-        self.episode_lengths = None
         self.episode_count = 0
         self.t_start = time.time()
 
@@ -58,13 +56,15 @@ class VecMonitor(VecEnvWrapper):
         if hasattr(venv, "spec") and venv.spec is not None:
             env_id = venv.spec.id
 
+        self.results_writer: Optional[ResultsWriter] = None
         if filename:
             self.results_writer = ResultsWriter(
-                filename, header={"t_start": self.t_start, "env_id": env_id}, extra_keys=info_keywords
+                filename, header={"t_start": self.t_start, "env_id": str(env_id)}, extra_keys=info_keywords
             )
-        else:
-            self.results_writer = None
+
         self.info_keywords = info_keywords
+        self.episode_returns = np.zeros(self.num_envs, dtype=np.float32)
+        self.episode_lengths = np.zeros(self.num_envs, dtype=np.int32)
 
     def reset(self) -> VecEnvObs:
         obs = self.venv.reset()
@@ -83,6 +83,8 @@ class VecMonitor(VecEnvWrapper):
                 episode_return = self.episode_returns[i]
                 episode_length = self.episode_lengths[i]
                 episode_info = {"r": episode_return, "l": episode_length, "t": round(time.time() - self.t_start, 6)}
+                for key in self.info_keywords:
+                    episode_info[key] = info[key]
                 info["episode"] = episode_info
                 self.episode_count += 1
                 self.episode_returns[i] = 0
