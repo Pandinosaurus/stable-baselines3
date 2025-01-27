@@ -15,7 +15,7 @@ Overview
 
 Overall Stable-Baselines3 (SB3) keeps the high-level API of Stable-Baselines (SB2).
 Most of the changes are to ensure more consistency and are internal ones.
-Because of the backend change, from Tensorflow to PyTorch, the internal code is much much readable and easy to debug
+Because of the backend change, from Tensorflow to PyTorch, the internal code is much more readable and easy to debug
 at the cost of some speed (dynamic graph vs static graph., see `Issue #90 <https://github.com/DLR-RM/stable-baselines3/issues/90>`_)
 However, the algorithms were extensively benchmarked on Atari games and continuous control PyBullet envs
 (see `Issue #48 <https://github.com/DLR-RM/stable-baselines3/issues/48>`_  and `Issue #49 <https://github.com/DLR-RM/stable-baselines3/issues/49>`_)
@@ -44,10 +44,11 @@ Breaking Changes
 ================
 
 
-- SB3 requires python 3.6+ (instead of python 3.5+ for SB2)
+- SB3 requires python 3.7+ (instead of python 3.5+ for SB2)
 - Dropped MPI support
 - Dropped layer normalized policies (``MlpLnLstmPolicy``, ``CnnLnLstmPolicy``)
 - LSTM policies (```MlpLstmPolicy```, ```CnnLstmPolicy```) are not supported for the time being
+  (see `PR #53 <https://github.com/Stable-Baselines-Team/stable-baselines3-contrib/pull/53>`_ for a recurrent PPO implementation)
 - Dropped parameter noise for DDPG and DQN
 - PPO is now closer to the original implementation (no clipping of the value function by default), cf PPO section below
 - Orthogonal initialization is only used by A2C/PPO
@@ -113,7 +114,7 @@ A2C
 	PyTorch implementation of RMSprop `differs from Tensorflow's <https://github.com/pytorch/pytorch/issues/23796>`_,
 	which leads to `different and potentially more unstable results <https://github.com/DLR-RM/stable-baselines3/pull/110#issuecomment-663255241>`_.
 	Use ``stable_baselines3.common.sb2_compat.rmsprop_tf_like.RMSpropTFLike`` optimizer to match the results
-	with TensorFlow's implementation. This can be done through ``policy_kwargs``: ``A2C(policy_kwargs=dict(optimizer_class=RMSpropTFLike, eps=1e-5))``
+	with TensorFlow's implementation. This can be done through ``policy_kwargs``: ``A2C(policy_kwargs=dict(optimizer_class=RMSpropTFLike, optimizer_kwargs=dict(eps=1e-5)))``
 
 
 PPO
@@ -140,7 +141,7 @@ DQN
 ^^^
 
 Only the vanilla DQN is implemented right now but extensions will follow.
-Default hyperparameters are taken from the nature paper, except for the optimizer and learning rate that were taken from Stable Baselines defaults.
+Default hyperparameters are taken from the Nature paper, except for the optimizer and learning rate that were taken from Stable Baselines defaults.
 
 DDPG
 ^^^^
@@ -176,10 +177,8 @@ Despite this change, no change in performance should be expected.
 HER
 ^^^
 
-The ``HER`` implementation now also supports online sampling of the new goals. This is done in a vectorized version.
+The ``HER`` implementation now only supports online sampling of the new goals. This is done in a vectorized version.
 The goal selection strategy ``RANDOM`` is no longer supported.
-``HER`` now supports ``VecNormalize`` wrapper but only when ``online_sampling=True``.
-For performance reasons, the maximum number of steps per episodes must be specified (see :ref:`HER <her>` documentation).
 
 
 New logger API
@@ -204,10 +203,8 @@ New Features (SB3 vs SB2)
 - Much cleaner and consistent base code (and no more warnings =D!) and static type checks
 - Independent saving/loading/predict for policies
 - A2C now supports Generalized Advantage Estimation (GAE) and advantage normalization (both are deactivated by default)
-- Generalized State-Dependent Exploration (gSDE) exploration is available for A2C/PPO/SAC. It allows to use RL directly on real robots (cf https://arxiv.org/abs/2005.05719)
-- Proper evaluation (using separate env) is included in the base class (using ``EvalCallback``),
-  if you pass the environment as a string, you can pass ``create_eval_env=True`` to the algorithm constructor.
-- Better saving/loading: optimizers are now included in the saved parameters and there is two new methods ``save_replay_buffer`` and ``load_replay_buffer`` for the replay buffer when using off-policy algorithms (DQN/DDPG/SAC/TD3)
+- Generalized State-Dependent Exploration (gSDE) exploration is available for A2C/PPO/SAC. It allows using RL directly on real robots (cf https://arxiv.org/abs/2005.05719)
+- Better saving/loading: optimizers are now included in the saved parameters and there are two new methods ``save_replay_buffer`` and ``load_replay_buffer`` for the replay buffer when using off-policy algorithms (DQN/DDPG/SAC/TD3)
 - You can pass ``optimizer_class`` and ``optimizer_kwargs`` to ``policy_kwargs`` in order to easily
   customize optimizers
 - Seeding now works properly to have deterministic results

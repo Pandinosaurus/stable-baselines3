@@ -8,15 +8,19 @@ along with some useful characteristics: support for discrete/continuous actions,
 ===================  =========== ============ ================= =============== ================
 Name                 ``Box``     ``Discrete`` ``MultiDiscrete`` ``MultiBinary`` Multi Processing
 ===================  =========== ============ ================= =============== ================
+ARS [#f1]_           ✔️           ✔️            ❌                 ❌              ✔️
 A2C                  ✔️           ✔️            ✔️                 ✔️               ✔️
+CrossQ [#f1]_        ✔️           ❌            ❌                ❌               ✔️
 DDPG                 ✔️           ❌            ❌                ❌               ✔️
 DQN                  ❌           ✔️            ❌                ❌               ✔️
-HER                  ✔️           ✔️            ❌                ❌               ❌
+HER                  ✔️           ✔️            ❌                ❌               ✔️
 PPO                  ✔️           ✔️            ✔️                 ✔️               ✔️
+QR-DQN [#f1]_        ❌          ️ ✔️            ❌                ❌               ✔️
+RecurrentPPO [#f1]_  ✔️           ✔️             ✔️                ✔️               ✔️
 SAC                  ✔️           ❌            ❌                ❌               ✔️
 TD3                  ✔️           ❌            ❌                ❌               ✔️
-QR-DQN [#f1]_        ❌          ️ ✔️            ❌                ❌               ✔️
 TQC [#f1]_           ✔️           ❌            ❌                ❌               ✔️
+TRPO  [#f1]_         ✔️           ✔️            ✔️                 ✔️               ✔️
 Maskable PPO [#f1]_  ❌           ✔️            ✔️                 ✔️               ✔️
 ===================  =========== ============ ================= =============== ================
 
@@ -24,8 +28,8 @@ Maskable PPO [#f1]_  ❌           ✔️            ✔️                 ✔�
 .. [#f1] Implemented in `SB3 Contrib <https://github.com/Stable-Baselines-Team/stable-baselines3-contrib>`_
 
 .. note::
-  ``Tuple`` observation spaces are not supported by any environment
-  however single-level ``Dict`` spaces are (cf. :ref:`Examples <examples>`).
+  ``Tuple`` observation spaces are not supported by any environment,
+  however, single-level ``Dict`` spaces are (cf. :ref:`Examples <examples>`).
 
 
 Actions ``gym.spaces``:
@@ -40,7 +44,8 @@ Actions ``gym.spaces``:
 
 .. note::
 
-  More algorithms (like QR-DQN or TQC) are implemented in our :ref:`contrib repo <sb3_contrib>`.
+  More algorithms (like QR-DQN or TQC) are implemented in our :ref:`contrib repo <sb3_contrib>`
+  and in our :ref:`SBX (SB3 + Jax) repo <sbx>` (DroQ, CrossQ, ...).
 
 .. note::
 

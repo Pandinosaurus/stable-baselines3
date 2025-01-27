@@ -19,18 +19,12 @@ It creates "virtual" transitions by relabeling transitions (changing the desired
   but a replay buffer class ``HerReplayBuffer`` that must be passed to an off-policy algorithm
   when using ``MultiInputPolicy`` (to have Dict observation support).
 
-
 .. warning::
 
-    HER requires the environment to inherits from `gym.GoalEnv <https://github.com/openai/gym/blob/3394e245727c1ae6851b504a50ba77c73cd4c65b/gym/core.py#L160>`_
-
-
-.. warning::
-
-  For performance reasons, the maximum number of steps per episodes must be specified.
-  In most cases, it will be inferred if you specify ``max_episode_steps`` when registering the environment
-  or if you use a ``gym.wrappers.TimeLimit`` (and ``env.spec`` is not None).
-  Otherwise, you can directly pass ``max_episode_length`` to the model constructor
+    HER requires the environment to follow the legacy `gym_robotics.GoalEnv interface <https://github.com/Farama-Foundation/Gymnasium-Robotics/blob/a35b1c1fa669428bf640a2c7101e66eb1627ac3a/gym_robotics/core.py#L8>`_
+    In short, the ``gym.Env`` must have:
+    - a vectorized implementation of ``compute_reward()``
+    - a dictionary observation space with three keys: ``observation``, ``achieved_goal`` and ``desired_goal``
 
 
 .. warning::
@@ -38,6 +32,12 @@ It creates "virtual" transitions by relabeling transitions (changing the desired
   Because it needs access to ``env.compute_reward()``
   ``HER`` must be loaded with the env. If you just want to use the trained policy
   without instantiating the environment, we recommend saving the policy only.
+
+
+.. note::
+
+  Compared to other implementations, the ``future`` goal sampling strategy is inclusive:
+  the current transition can be used when re-sampling.
 
 
 Notes
@@ -65,7 +65,6 @@ This example is only to demonstrate the use of the library and its functions, an
     from stable_baselines3 import HerReplayBuffer, DDPG, DQN, SAC, TD3
     from stable_baselines3.her.goal_selection_strategy import GoalSelectionStrategy
     from stable_baselines3.common.envs import BitFlippingEnv
-    from stable_baselines3.common.vec_env import DummyVecEnv
 
     model_class = DQN  # works also with SAC, DDPG and TD3
     N_BITS = 15
@@ -73,12 +72,7 @@ This example is only to demonstrate the use of the library and its functions, an
     env = BitFlippingEnv(n_bits=N_BITS, continuous=model_class in [DDPG, SAC, TD3], max_steps=N_BITS)
 
     # Available strategies (cf paper): future, final, episode
-    goal_selection_strategy = 'future' # equivalent to GoalSelectionStrategy.FUTURE
-
-    # If True the HER transitions will get sampled online
-    online_sampling = True
-    # Time limit for the episodes
-    max_episode_length = N_BITS
+    goal_selection_strategy = "future" # equivalent to GoalSelectionStrategy.FUTURE
 
     # Initialize the model
     model = model_class(
@@ -89,8 +83,6 @@ This example is only to demonstrate the use of the library and its functions, an
         replay_buffer_kwargs=dict(
             n_sampled_goal=4,
             goal_selection_strategy=goal_selection_strategy,
-            online_sampling=online_sampling,
-            max_episode_length=max_episode_length,
         ),
         verbose=1,
     )
@@ -101,15 +93,14 @@ This example is only to demonstrate the use of the library and its functions, an
     model.save("./her_bit_env")
     # Because it needs access to `env.compute_reward()`
     # HER must be loaded with the env
-    model = model_class.load('./her_bit_env', env=env)
+    model = model_class.load("./her_bit_env", env=env)
 
-    obs = env.reset()
+    obs, info = env.reset()
     for _ in range(100):
         action, _ = model.predict(obs, deterministic=True)
-        obs, reward, done, _ = env.step(action)
-
-        if done:
-            obs = env.reset()
+        obs, reward, terminated, truncated, _ = env.step(action)
+        if terminated or truncated:
+            obs, info = env.reset()
 
 
 Results
